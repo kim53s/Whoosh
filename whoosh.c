@@ -30,6 +30,7 @@ int main(int argc, char **argv){
 		exit(1);
 	}
 
+	line = (char*)malloc(sizeof(char) * MAX_COMMAND);
 	path = (char**)calloc( num_words, sizeof(char*) * MAX_COMMAND );
 	path[0] = "/bin";
 
@@ -42,7 +43,7 @@ int main(int argc, char **argv){
 void checkCommand(){
 
 	command = (char**)calloc( num_words, sizeof(char*) * MAX_COMMAND ); 
-	line = (char*)malloc(sizeof(char) * MAX_COMMAND);
+	
 	
 	printf("whoosh> ");
 
@@ -50,13 +51,14 @@ void checkCommand(){
 	fgets(line, 128, stdin);
 
 	parseCommand(line);
-	free(line);
+	//free(line);
 
 	if(command[0][(int)strlen(command[0])-1] == '\n'){
 		command[0][(int)strlen(command[0])-1] = '\0';
 	}
 
     if(strcmp(command[0], "exit") == 0){
+    	free(line);
     	free(command);
     	free(path);
 		exit(0);
@@ -124,8 +126,6 @@ void exec(char *string){
    
 	args[0] = str;       
 	args[1] = NULL;          
-
-	printf("%s\n", args[0]);
 
 	int pid = fork();
 	  	  
