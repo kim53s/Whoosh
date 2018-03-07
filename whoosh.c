@@ -10,6 +10,7 @@ void checkCommand();
 void pwd();
 void cd();
 void setPath();
+void printPath();
 void exec(char *string);
 int parseCommand(char *string);
 int searchFile(char *file);
@@ -82,9 +83,12 @@ void checkCommand(){
 	//		return;
 	//	}
 	}
+	else if(strcmp(command[0],"printpath") == 0){
+		printPath();
+	}
 	else{
 	//sth wrong with searchFile
-		printf("%s\n", command[0]);
+		//printf("%s\n", command[0]);
 		if(searchFile(command[0]) == 1){
 			exec(command[0]);
 		}
@@ -131,12 +135,20 @@ void cd(){
 
 void setPath(){
 	
-                 for(int i=0;i<1;i++){ //start with one path
-			path[i]=(char *)malloc(strlen(command[i+1])+1);
-                        strcpy(path[i], command[i+1]);
-			printf("The path is %s\n", path[i]);
-                 }
+    for(int i=0;i<1;i++){ //start with one path
+		path[i]=(char *)malloc(strlen(command[i+1])+1);
+        strcpy(path[i], command[i+1]);
+		//printf("The path is %s\n", path[i]);
+    }
+    // if the last character is '\n', then delete it
+    if(path[0][(int)strlen(path[0])-1] == '\n'){
+		path[0][(int)strlen(path[0])-1] = '\0';
+	}
 
+}
+
+void printPath(){
+	printf("Current path: %s\n", path[0]);
 }
 
 void exec(char *string){
@@ -189,18 +201,20 @@ int searchFile(char *file) {
     int result = 0;
     struct stat buf;
     for(int i=0;i<1;i++){
-	printf("current path is %s\n",path[i]);
+	//printf("current path is %s\n",path[i]);
    	char str[strlen(file)+strlen(path[i])+1];
 	strcpy(str, path[i]);
 	strcat(str, "/");
 	strcat(str, file);
-	printf("full path is %s", str);
+	//printf("full path is %s", str);
     	if(stat(str, &buf) == 0){
     		result = 1;
     	}
-
+	}
+	if(result == 0){
+		printf("NO SUCH PROGRAM\n");
+	}
     return result;
-}
 }
 
 void reportError() {
