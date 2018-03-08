@@ -12,6 +12,7 @@ void cd();
 void setPath();
 void printPath();
 void exec(char *string);
+void execWithPath(char str[]);
 int parseCommand(char *string);
 int searchFile(char *file);
 
@@ -139,7 +140,9 @@ void setPath(){
 }
 
 void printPath(){
-	printf("Current path: %s\n", path[0]);
+	for(int i=0;i<numPaths;i++){
+		printf("%s\n", path[i]);
+	}
 }
 
 void exec(char *string){
@@ -188,10 +191,9 @@ int parseCommand(char *string){
 int searchFile(char *file) {
     int result = 0;
     struct stat buf;
-printf("numPaths %i\n", numPaths);
+//printf("numPaths %i\n", numPaths);
     for(int i=0;i<numPaths;i++){
    	char str[strlen(file)+strlen(path[i])+1];
-	//strcpy(str, path[i]);
 	//if the last character is a new line character delete it
 	if(path[i][(int)strlen(path[i])-1] == '\n'){
 		path[i][(int)strlen(path[i])-1] = '\0';
@@ -199,7 +201,7 @@ printf("numPaths %i\n", numPaths);
 	strcpy(str,path[i]);
 	strcat(str, "/");
 	strcat(str, file);
-	printf("filePath is %s\n", str);
+//	printf("filePath is %s\n", str);
     	if(stat(str, &buf) == 0){
     		result = 1;
 		execWithPath(str);
