@@ -17,17 +17,14 @@ int searchFile(char *file);
 
 // the maximun length of command line
 int const MAX_COMMAND = 128;
-//int numPaths;
 char *line;
 char **command;
 char **path;
 //TODO: figure out exact number of arguments in the command
 // number of words in a command
 int num_words= 128;
-int num_args=0;
-
+int numPaths=1;
 int main(int argc, char **argv){
-	num_args=argc;
 	if(argc > 1){
 		reportError();	
 		exit(1);
@@ -36,8 +33,7 @@ int main(int argc, char **argv){
 	line = (char*)malloc(sizeof(char) * MAX_COMMAND);
 	path = (char**)calloc( num_words, sizeof(char*) * MAX_COMMAND );
 	path[0] = "/bin";
-	//numPaths=1;
-	checkCommand();
+	checkCommand(argc);
 
 	return 0;
 	
@@ -46,16 +42,15 @@ int main(int argc, char **argv){
 void checkCommand(){
 
 	command = (char**)calloc( num_words, sizeof(char*) * MAX_COMMAND ); 
-	
-	
 	printf("whoosh> ");
 
 	// get user input
 	fgets(line, 128, stdin);
-
-	parseCommand(line);
 	//free(line);
-
+	int i=parseCommand(line);
+	if(i>0){
+		numPaths=i;
+	}
 	if(command[0][(int)strlen(command[0])-1] == '\n'){
 		command[0][(int)strlen(command[0])-1] = '\0';
 	}
@@ -75,22 +70,19 @@ void checkCommand(){
 		cd();
 	}
 	else if(strcmp(command[0],"setpath") == 0){
-	//	if(num_args>2){
-			
+		if(numPaths>=1){
 			setPath();
-	//	}
-	//	else{
-	//		return;
-	//	}
+		}
+		else{
+			return;
+		}
 	}
 	else if(strcmp(command[0],"printpath") == 0){
 		printPath();
 	}
 	else{
-	//sth wrong with searchFile
-		//printf("%s\n", command[0]);
 		if(searchFile(command[0]) == 1){
-			exec(command[0]);
+		//	exec(command[0]);
 		}
 		else{
 			reportError();
@@ -135,10 +127,9 @@ void cd(){
 
 void setPath(){
 	
-    for(int i=0;i<1;i++){ //start with one path
-		path[i]=(char *)malloc(strlen(command[i+1])+1);
+    for(int i=0;i<numPaths;i++){ //start with one path
+	path[i]=(char *)malloc(strlen(command[i+1])+1);
         strcpy(path[i], command[i+1]);
-		//printf("The path is %s\n", path[i]);
     }
     // if the last character is '\n', then delete it
     if(path[0][(int)strlen(path[0])-1] == '\n'){
@@ -159,7 +150,6 @@ void exec(char *string){
 	strcpy(str, path[0]);
 	strcat(str, "/");
 	strcat(str, string);
-   
 	args[0] = str;       
 	args[1] = NULL;          
 
@@ -191,32 +181,53 @@ int parseCommand(char *string){
    		if(token != NULL)
    			index++;
    	}
-
    	return index;
 }
 //changed to search every path
 // return 1 if there exists the file in the current path
 int searchFile(char *file) {
-	printf("file is %s\n", file);
     int result = 0;
     struct stat buf;
-    for(int i=0;i<1;i++){
-	//printf("current path is %s\n",path[i]);
+printf("numPaths %i\n", numPaths);
+    for(int i=0;i<numPaths;i++){
    	char str[strlen(file)+strlen(path[i])+1];
-	strcpy(str, path[i]);
+	//strcpy(str, path[i]);
+	//if the last character is a new line character delete it
+	if(path[i][(int)strlen(path[i])-1] == '\n'){
+		path[i][(int)strlen(path[i])-1] = '\0';
+	}
+	strcpy(str,path[i]);
 	strcat(str, "/");
 	strcat(str, file);
-	//printf("full path is %s", str);
+	printf("filePath is %s\n", str);
     	if(stat(str, &buf) == 0){
     		result = 1;
+		execWithPath(str);
     	}
-	}
+	
+    }
 	if(result == 0){
 		printf("NO SUCH PROGRAM\n");
 	}
     return result;
 }
+void execWithPath(char str[]){
+	int status;
+	char *args[2];
+	args[0]=str;
+	args[1]=NULL;
+	int pid=fork();
+	if(pid == 0){
+		execv(args[0],args);
+	}
+	else if(pid > 0){
+		wait( &status );
+	}
+	else{
+		reportError();
+	}
 
+}
 void reportError() {
 	char error_message[30] = "An error has occurred\n";
     write(STDERR_FILENO, error_message, strlen(error_message));
